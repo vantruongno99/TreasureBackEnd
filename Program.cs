@@ -17,7 +17,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TreasureContext>(options =>
     options.UseMySql(
-        "Server=database-1.c5cys2gs4q2s.ap-southeast-2.rds.amazonaws.com;Port=3306;Database=treasure;Uid=admin;Pwd=12345678;",
+        builder.Configuration.GetConnectionString("DefaultConnection"),
         new MySqlServerVersion(new Version(8, 0, 40))).LogTo(Console.WriteLine, LogLevel.Information).EnableSensitiveDataLogging()
                 .EnableDetailedErrors()
 
