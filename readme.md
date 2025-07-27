@@ -13,7 +13,7 @@
     dotnet restore
     ```
 
-2. (If using EF Core) Apply migrations: (not needed as it is already created)
+2. (If using EF Core) Apply migrations: (not needed as it is already applied)
 
     ```bash
     dotnet ef migrations add CreateTreasureTable 
