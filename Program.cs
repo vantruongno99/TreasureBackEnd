@@ -18,9 +18,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TreasureContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        new MySqlServerVersion(new Version(8, 0, 40))).LogTo(Console.WriteLine, LogLevel.Information).EnableSensitiveDataLogging()
-                .EnableDetailedErrors()
-
+        new MySqlServerVersion(new Version(8, 0, 40)),
+        mySqlOptions => {
+            mySqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorNumbersToAdd: null
+            );
+        })
+    .LogTo(Console.WriteLine, LogLevel.Information)
+    .EnableSensitiveDataLogging()
+    .EnableDetailedErrors()
 );
 
 builder.Services.AddCors(options =>

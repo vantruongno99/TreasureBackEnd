@@ -54,7 +54,7 @@ namespace TreasureBackEnd.Services
             //  1: [(0, 0)],
             //  2: [(1, 1), (2, 2)],
             //  3: [(4, 4)]
-             //}
+            //}
 
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < m; j++)
@@ -65,41 +65,51 @@ namespace TreasureBackEnd.Services
                     chestPositions[chestNumber].Add((i, j));
                 }
 
-            double[,] dp = new double[n, m];
+            // Will throw error if not add this 
+            if (p == 1)
+            {
+                var pos = chestPositions[1][0];
+                double temp = Math.Round(CalculateDistance(0, 0, pos.x, pos.y), 5);
+                await SaveResultToDatabase(input, temp);
+                return temp;
+            }
+
+
+            double[,] dimension = new double[n, m];
             for (int i = 0; i < n; i++)
                 for (int j = 0; j < m; j++)
-                    dp[i, j] = double.MaxValue;
+                    dimension[i, j] = double.MaxValue; // add the value is maximum and cannot be lower than anything (to safeguard) 
 
-            dp[0, 0] = 0;
+            dimension[0, 0] = 0;
 
-            // Initialize chest 1
+            // start at chest 1
             foreach (var (x, y) in chestPositions[1])
-                dp[x, y] = CalculateDistance(0, 0, x, y);
+                dimension[x, y] = CalculateDistance(0, 0, x, y);
 
-            // Transition to chest 2 through p
+            // move to chest 2 through p
             for (int chest = 2; chest <= p; chest++)
             {
                 if (!chestPositions.ContainsKey(chest - 1) || !chestPositions.ContainsKey(chest)) continue;
 
                 foreach (var (nx, ny) in chestPositions[chest])
                 {
-                    dp[nx, ny] = chestPositions[chest - 1]
-                        .Select(pos => dp[pos.x, pos.y] + CalculateDistance(pos.x, pos.y, nx, ny))
+                    dimension[nx, ny] = chestPositions[chest - 1]
+                        .Select(pos => dimension[pos.x, pos.y] + CalculateDistance(pos.x, pos.y, nx, ny))
                         .Min();
                 }
             }
-
+            // last position, get the lowest distance to take the last chest ( treasure) all the wway from the beginning
             var finalPos = chestPositions[p][0];
-            double result = Math.Round(dp[finalPos.x, finalPos.y],5);
+            double result = Math.Round(dimension[finalPos.x, finalPos.y], 5);
 
             await SaveResultToDatabase(input, result);
-
             return result;
         }
         public async Task<List<TreasureRecord>> GetHistory()
         {
             return await _treasureContext.TreasureRecords
                                          .OrderByDescending(t => t.Id)
+                                         .Take(5)
                                          .ToListAsync();
         }
 
@@ -121,6 +131,8 @@ namespace TreasureBackEnd.Services
             }
 
             var treasureCounts = new int[p + 1]; // index 0 unused
+
+
 
             for (int i = 0; i < n; i++)
             {
